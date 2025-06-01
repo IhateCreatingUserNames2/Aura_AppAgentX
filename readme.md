@@ -16,34 +16,36 @@ Aura2 is a sophisticated conversational AI project integrating a core agent (Aur
 
 
 Aura2/
-├── .env # Environment variables (API keys, configs)
-├── a2a_wrapper/ # FastAPI server for A2A and Voice Client API
-│ ├── main.py # Main FastAPI application, A2A handler, Voice API endpoints
-│ ├── models.py # Pydantic models for A2A communication
-│ └── init.py
-├── orchestrator_adk_agent.py # Defines the core Aura ADK LlmAgent, tools, and session management
-├── memory_system/ # Custom memory components
-│ ├── memory_blossom.py
-│ ├── memory_models.py
-│ ├── memory_connector.py
-│ ├── embedding_utils.py
-│ └── init.py
-├── AppAgentX/ # AppAgentX submodule/package for Android control
-│ ├── backend/ # Dockerized backend services for AppAgentX (OmniParser, etc.)
-│ │ ├── docker-compose.yml
-│ │ ├── OmniParser/
-│ │ └── ImageEmbedding/
-│ ├── config.py # AppAgentX specific configurations
-│ ├── deployment.py # AppAgentX task execution logic
-│ ├── explor_auto.py # AppAgentX automated exploration logic
-│ ├── ... (other AppAgentX files) ...
-│ └── init.py
-├── aura_voice_client.html # HTML for the realtime voice client
-├── aura_voice_client.js # JavaScript for the realtime voice client
-├── index.html # HTML for the A2A web chat UI
-├── requirements.txt # Python dependencies for Aura2 (main project)
-└── README.md # This file
 
+
+
+├── .env - Environment variables (API keys, configs)
+├── a2a_wrapper/ - FastAPI server for A2A and Voice Client API
+│   ├── main.py - Main FastAPI application, A2A handler, Voice API endpoints
+│   ├── models.py - Pydantic models for A2A communication
+│   └── init.py
+├── orchestrator_adk_agent.py - Core Aura ADK LlmAgent, tools, and session management
+├── memory_system/ - Custom memory components
+│   ├── memory_blossom.py
+│   ├── memory_models.py
+│   ├── memory_connector.py
+│   ├── embedding_utils.py
+│   └── init.py
+├── AppAgentX/ - AppAgentX submodule/package for Android control
+│   ├── backend/ - Dockerized backend services (OmniParser, etc.)
+│   │   ├── docker-compose.yml
+│   │   ├── OmniParser/
+│   │   └── ImageEmbedding/
+│   ├── config.py - AppAgentX specific configurations
+│   ├── deployment.py - Task execution logic
+│   ├── explor_auto.py - Automated exploration logic
+│   ├── ... (other AppAgentX files) ...
+│   └── init.py
+├── aura_voice_client.html - HTML for realtime voice client
+├── aura_voice_client.js - JavaScript for realtime voice client
+├── index.html - HTML for A2A web chat UI
+├── requirements.txt - Python dependencies
+└── README.md - Project documentation
 
 
 ## Architecture Overview
