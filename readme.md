@@ -248,7 +248,9 @@ Aura2/
 
 Good luck!
 
+![image](https://github.com/user-attachments/assets/18304b2a-d611-4ed8-b76f-060990e2bbcc)
 
+![androids-ezgif com-optimize](https://github.com/user-attachments/assets/2910b9d3-93bc-4b69-adca-caaf9dede2ad)
 
 
 ![image](https://github.com/user-attachments/assets/6476c98f-e418-4205-8843-667d302ce36a)
