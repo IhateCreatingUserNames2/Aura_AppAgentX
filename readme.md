@@ -13,6 +13,7 @@ Aura 2 is based on Aura and share it's core principles, read about Aura in :  ht
 *   **A2A Protocol Wrapper:** Exposes Aura via the Agent-to-Agent (A2A) communication protocol. 
 *   ** AIRA HUB INTEGRATION READY **  https://github.com/IhateCreatingUserNames2/AiraHub2/ 
 *   **Realtime Voice Interface (Prototype):** Includes a web-based client for real-time voice interaction, using OpenAI's Realtime API for STT/TTS and WebRTC.
+*   Aura uses LiteLLM and OpenRouter. 
 
 ## Hardware Usage 
 
