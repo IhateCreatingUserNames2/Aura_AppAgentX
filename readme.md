@@ -99,14 +99,13 @@ Aura2/
 
 1.  **Clone the Repository (if applicable):**
     ```bash
-    git clone <your_repository_url>
-    cd Aura2
+     Clone download this repository 
     ```
     (If AppAgentX is a submodule, initialize and update it: `git submodule update --init --recursive`)
 
 2.  **Install Python Dependencies:**
     ```bash
-    pip install -r requirements.txt
+    pip install -r requirements.txt ( DEPRECATED, nEED TO BE ADJUSTED, YOU MAY HAVE TO MANUALLY INSTALL SOME STUFF FOR NOW, CHECK FILES) 
     ```
     (There might be a separate `requirements.txt` inside `AppAgentX/` that its components need. Check AppAgentX setup instructions.)
 
@@ -184,7 +183,7 @@ Aura2/
     *   Open `index.html` (located in the `Aura2/` root) in your web browser.
     *   Interact with Aura via text.
 
-*   **Realtime Voice Client:**
+*   **Realtime Voice Client:** ( NOT IMPLEMENTED IN THE CURRENT LOGIC, RealTime Works but wont run thru AURA FLOW) 
     *   Open `aura_voice_client.html` (located in the `Aura2/` root) in your web browser.
     *   Click "Connect to Realtime Services."
     *   Allow microphone access when prompted.
@@ -233,13 +232,6 @@ Aura2/
 *   STT and TTS integration with RealTime Models and Aura ADK Orchestrator
 
 ---
-
-This is a comprehensive starting point. You should customize it further with:
-*   More specific details about your NCF implementation if it's unique.
-*   More details about the specific AppAgentX version or fork you are using if it's not the main one.
-*   Any specific setup quirks you encountered and resolved.
-*   A `.env.example` file would be very helpful for users.
-*   Links to the GitHub repository if you make it public.
 
 Good luck!
 
