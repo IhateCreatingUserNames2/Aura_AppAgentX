@@ -1,6 +1,8 @@
 # Aura 2: Advanced Conversational AI with Multi-Modal Capabilities
 
-Aura2 is a sophisticated conversational AI project integrating a core agent (Aura) with advanced memory systems (MemoryBlossom), Narrative Context Framing (NCF), and the ability to control Android applications via AppAgentX. This project showcases how these components can be orchestrated to create a rich, context-aware, and capable AI assistant.
+Aura 2 is a sophisticated conversational AI project integrating a core agent (Aura) with advanced memory systems (MemoryBlossom), Narrative Context Framing (NCF), and the ability to control Android applications via AppAgentX. This project showcases how these components can be orchestrated to create a rich, context-aware, and capable AI assistant.
+
+Aura 2 is based on Aura and share it's core principles, read about Aura in :  https://github.com/IhateCreatingUserNames2/Aura 
 
 **Core Features:**
 
@@ -11,6 +13,7 @@ Aura2 is a sophisticated conversational AI project integrating a core agent (Aur
 *   **A2A Protocol Wrapper:** Exposes Aura via the Agent-to-Agent (A2A) communication protocol. 
 *   ** AIRA HUB INTEGRATION READY **  https://github.com/IhateCreatingUserNames2/AiraHub2/ 
 *   **Realtime Voice Interface (Prototype):** Includes a web-based client for real-time voice interaction, using OpenAI's Realtime API for STT/TTS and WebRTC.
+
 
 ## Project Structure
 
