@@ -168,7 +168,7 @@ Aura2/
         ```
         (Use the correct service names from your `docker-compose.yml`). Ensure they start without errors and are listening on their respective ports (e.g., 8000 and 8001).
 
-5.  **Prepare Android Device/Emulator:**
+5.  **Prepare Android Device/Emulator:**   ( DEFAULT DEVICE_ID = DYONHQPZ9PF6V4TO <- FIND THIS IN THE CODE FILES (orchestrator...) and REPLACE WITH YOUR OWN DEVICE ID ) 
     *   Connect your Android device via USB or start an emulator.
     *   Enable Developer Options and **USB Debugging**.
     *   **Crucially, enable any "Security Settings" related to USB Debugging or "Disable permission monitoring"** in Developer Options to allow ADB to inject input events (taps, swipes). This is device-manufacturer specific.
