@@ -14,6 +14,10 @@ Aura 2 is based on Aura and share it's core principles, read about Aura in :  ht
 *   ** AIRA HUB INTEGRATION READY **  https://github.com/IhateCreatingUserNames2/AiraHub2/ 
 *   **Realtime Voice Interface (Prototype):** Includes a web-based client for real-time voice interaction, using OpenAI's Realtime API for STT/TTS and WebRTC.
 
+## Hardware Usage 
+
+- Aura uses 5 LLM calls for each AppAgentX Command 
+- Aura was tested on a i7 7700, 16GB RAM, NVIDIA 1060 6GB, Windows 10 . It consumes at least 8gb of Ram and around 50gb of Space(In Windows due WSL...) 
 
 ## Project Structure
 
