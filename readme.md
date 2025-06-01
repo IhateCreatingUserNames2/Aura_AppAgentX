@@ -198,6 +198,10 @@ Aura2/
     *   Allow microphone access when prompted.
     *   Use "Start Speaking" and "Stop Speaking" to talk to Aura.
 
+*   REGISTERING AURA INTO AIRA HUB: 
+
+               curl -X POST -H "Content-Type: application/json" -d "{\"url\":\"https://b0db-189-28-2-171.ngrok-free.app\",\"name\":\"Aura2_NCF_A2A_Unified\",\"description\":\"A conversational AI agent, Aura2, with advanced memory (NCF). Exposed via A2A and ngrok.\",\"version\":\"1.2.1-unified\",\"mcp_tools\":[{\"name\":\"Aura2_NCF_narrative_conversation\",\"description\":\"Engage in a deep, contextual conversation. Aura2 uses its MemoryBlossom system and Narrative Context Framing to understand and build upon previous interactions.\",\"inputSchema\":{\"type\":\"object\",\"properties\":{\"user_input\":{\"type\":\"string\",\"description\":\"The textual input from the user for the conversation.\"},\"a2a_task_id_override\":{\"type\":\"string\",\"description\":\"Optional: Override the A2A task ID for session mapping.\",\"nullable\":true}},\"required\":[\"user_input\"]},\"annotations\":{\"aira_bridge_type\":\"a2a\",\"aira_a2a_target_skill_id\":\"narrative_conversation\",\"aira_a2a_agent_url\":\"https://b0db-189-28-2-171.ngrok-free.app\"}}],\"a2a_skills\":[],\"aira_capabilities\":[\"a2a\"],\"status\":\"online\",\"tags\":[\"adk\",\"memory\",\"a2a\",\"conversational\",\"ngrok\",\"ncf\",\"aura2\"],\"category\":\"ExperimentalAgents\",\"provider\":{\"name\":\"LocalDevNgrok\"},\"mcp_url\":null,\"mcp_sse_url\":null,\"mcp_stream_url\":null,\"stdio_command\":null}" https://airahub2.onrender.com/register
+
 ## Development & Debugging
 
 *   **Server Logs:** Monitor the terminal where `a2a_wrapper/main.py` is running for detailed logs from Aura, ADK, NCF pillars, and AppAgentX tool calls.
