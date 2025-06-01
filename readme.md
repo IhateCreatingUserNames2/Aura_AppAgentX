@@ -12,8 +12,8 @@ Aura2 is a sophisticated conversational AI project integrating a core agent (Aur
 *   **Realtime Voice Interface (Prototype):** Includes a web-based client for real-time voice interaction, using OpenAI's Realtime API for STT/TTS and WebRTC.
 
 ## Project Structure
-Use code with caution.
-Markdown
+
+
 Aura2/
 ├── .env # Environment variables (API keys, configs)
 ├── a2a_wrapper/ # FastAPI server for A2A and Voice Client API
@@ -42,6 +42,9 @@ Aura2/
 ├── index.html # HTML for the A2A web chat UI
 ├── requirements.txt # Python dependencies for Aura2 (main project)
 └── README.md # This file
+
+
+
 ## Architecture Overview
 
 1.  **Client Interfaces:**
