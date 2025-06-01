@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  image-embedding:
+    build:
+      context: ./ImageEmbedding
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./ImageEmbedding:/app
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    restart: unless-stopped
+
+  omni-parser:
+    build:
+      context: ./OmniParser
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./OmniParser:/app
+      - ./OmniParser/weights:/app/weights
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    restart: unless-stopped

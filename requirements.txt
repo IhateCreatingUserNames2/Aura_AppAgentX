@@ -1,0 +1,44 @@
+# Core dependencies
+gradio
+numpy
+pandas
+pillow
+python-dotenv
+matplotlib
+
+# Database & vector stores
+neo4j
+chromadb
+
+# AI/ML frameworks
+torch
+transformers
+sentence-transformers
+scikit-learn
+opencv-python
+
+# LangChain ecosystem
+langchain
+langchain-openai
+langgraph
+
+# OpenAI
+openai
+
+# Android/ADB
+pure-python-adb
+google-adk
+
+# Async/Web
+asyncio
+aiohttp
+lxml
+fastapi
+uvicorn[standard]
+pydantic
+
+# Model serving
+litellm
+
+# Note: google-adk might need to be installed separately as it's not a standard PyPI package
+# Consider using 'google-assistant-sdk' or similar if you meant that

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Aura Realtime Voice Assistant</title>
+  <style>
+    body { background-color: #121212; color: #ffffff; font-family: Arial, sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+    .container { max-width: 700px; width: 100%; background-color: #1e1e1e; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+    h2 { text-align: center; }
+    #chat-log { height: 300px; overflow-y: auto; border: 1px solid #444; padding: 10px; margin-bottom: 15px; background-color: #2a2a2a; border-radius: 4px; }
+    .message { padding: 8px; margin-bottom: 10px; border-radius: 4px; word-wrap: break-word; }
+    .message.user-transcript { background-color: #3a3a3a; text-align: right; }
+    .message.aura-response { background-color: #555; text-align: left; }
+    .controls-container button { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; background-color: #008CBA; color: #fff; cursor: pointer; font-size: 16px; }
+    .controls-container button:disabled { background-color: #555; cursor: not-allowed; }
+    #status-area { margin-top: 15px; text-align: center; }
+    #remoteAudio { display: block; margin: 10px auto; } /* Make controls visible for debugging */
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Aura Realtime Voice</h2>
+
+    <div class="controls-container">
+      <button id="connectBtn">Connect to Realtime Services</button>
+      <button id="startRecordBtn" disabled>Start Speaking</button>
+      <button id="stopRecordBtn" disabled>Stop Speaking</button>
+      <button id="disconnectBtn" disabled>Disconnect</button>
+    </div>
+
+    <div id="status-area">
+      <p>Status: <span id="statusText">Idle</span></p>
+    </div>
+
+    <h4>Your Speech (Transcript):</h4>
+    <div id="chat-log">
+        <!-- Transcripts and Aura's text responses will appear here -->
+    </div>
+
+    <h4>Aura's Spoken Response (will play automatically):</h4>
+    <audio id="remoteAudio" autoplay controls></audio>
+    <!-- `controls` attribute added for easier debugging of audio playback -->
+
+  </div>
+
+  <script src="aura_voice_client.js"></script>
+</body>
+</html>

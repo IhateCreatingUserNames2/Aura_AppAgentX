@@ -1,0 +1,21 @@
+https://huggingface.co/microsoft/OmniParser/tree/main/icon_caption_florence
+
+https://huggingface.co/microsoft/OmniParser/blob/main/icon_caption_florence/model.safetensors
+
+Download model.safetensors and put it in: aura_AppAgentX\AppAgentX\backend\OmniParser\weights\icon_caption_florence
+
+
+
+
+
+
+
+DOWNLOAD model_v1_5.pt
+https://huggingface.co/microsoft/OmniParser/tree/main/icon_detect_v1_5 
+
+rename to best.pt 
+
+And put it in: 
+
+
+aura_AppAgentX\AppAgentX\backend\OmniParser\weights\icon_detect_v1_5

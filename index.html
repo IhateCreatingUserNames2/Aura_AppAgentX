@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat com Aura</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background-color: #f4f4f4; }
+        #chat-container { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
+        .message { max-width: 70%; padding: 10px 15px; margin-bottom: 10px; border-radius: 18px; line-height: 1.4; }
+        .user-message { background-color: #007bff; color: white; align-self: flex-end; border-bottom-right-radius: 5px; }
+        .aura-message { background-color: #e9e9eb; color: #333; align-self: flex-start; border-bottom-left-radius: 5px; }
+        .aura-message strong { color: #5815a0; } /* Destaque para o nome "Aura" */
+        #input-area { display: flex; padding: 10px; border-top: 1px solid #ccc; background-color: #fff; }
+        #message-input { flex-grow: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; margin-right: 10px; }
+        #send-button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 20px; cursor: pointer; }
+        #send-button:hover { background-color: #0056b3; }
+        .typing-indicator { font-style: italic; color: #777; align-self: flex-start; margin-bottom: 10px; padding: 5px 15px; }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <!-- As mensagens do chat serão adicionadas aqui -->
+         <div class="message aura-message"><strong>Aura:</strong> Olá! Como posso ajudar você hoje?</div>
+    </div>
+    <div id="input-area">
+        <input type="text" id="message-input" placeholder="Digite sua mensagem para Aura...">
+        <button id="send-button">Enviar</button>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+
+        // Gerar um ID de sessão único para esta aba/cliente
+        // Para persistência real entre sessões do navegador, usar localStorage
+        let a2aSessionId = sessionStorage.getItem('auraA2ASessionId');
+        if (!a2aSessionId) {
+            a2aSessionId = `webui-${Math.random().toString(36).substring(2, 15)}`;
+            sessionStorage.setItem('auraA2ASessionId', a2aSessionId);
+        }
+        console.log("A2A Session ID for this client:", a2aSessionId);
+
+        // Opcional: para mapear para uma única sessão ADK se desejado,
+        // ou deixar que o backend A2A crie/reuse sessões ADK com base no a2aSessionId.
+        // Se você quiser que cada aba do navegador seja uma sessão ADK separada,
+        // pode usar o a2aSessionId como a2a_task_id_override.
+        // Por agora, vamos usar a2aSessionId para o campo sessionId do A2A.
+        const a2aTaskIdOverride = a2aSessionId; // Ou um UUIDv4 novo para cada task
+
+
+        function addMessageToChat(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            if (sender === 'user') {
+                messageDiv.classList.add('user-message');
+                messageDiv.textContent = text;
+            } else { // aura
+                messageDiv.classList.add('aura-message');
+                // Para formatar o nome "Aura:" em negrito
+                const auraName = document.createElement('strong');
+                auraName.textContent = "Aura: ";
+                messageDiv.appendChild(auraName);
+                messageDiv.appendChild(document.createTextNode(text));
+            }
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight; // Rolar para a mensagem mais recente
+        }
+
+        function showTypingIndicator(show) {
+            let indicator = document.getElementById('typing-indicator');
+            if (show) {
+                if (!indicator) {
+                    indicator = document.createElement('div');
+                    indicator.id = 'typing-indicator';
+                    indicator.classList.add('typing-indicator');
+                    indicator.textContent = 'Aura está digitando...';
+                    chatContainer.appendChild(indicator);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+            } else {
+                if (indicator) {
+                    indicator.remove();
+                }
+            }
+        }
+
+        async function sendMessageToAura(userInput) {
+            if (!userInput.trim()) return;
+
+            addMessageToChat(userInput, 'user');
+            messageInput.value = '';
+            showTypingIndicator(true);
+
+            const apiUrl = 'http://localhost:8094/'; // URL do seu A2A Wrapper
+            const rpcId = `rpc-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+            const a2aTaskId = `task-${Date.now()}-${Math.random().toString(16).slice(2)}`; // Novo ID de tarefa A2A para cada envio
+
+
+            const payload = {
+                jsonrpc: "2.0",
+                id: rpcId,
+                method: "tasks/send",
+                params: {
+                    id: a2aTaskId, // ID da tarefa A2A
+                    sessionId: a2aSessionId, // ID da sessão A2A (gerenciado pelo cliente)
+                    message: {
+                        role: "user",
+                        parts: [
+                            {
+                                type: "data", // Ou "text" se não precisar do a2a_task_id_override no data
+                                data: { // Se usar "data", o backend precisa extrair de first_part.data["user_input"]
+                                   user_input: userInput
+                                   // Se quiser que cada aba/cliente seja uma sessão ADK distinta,
+                                   // e o backend esteja preparado para isso:
+                                   // "a2a_task_id_override": a2aTaskIdOverride
+                                },
+                                // text: userInput // Se usar "text", o backend extrai de first_part.text
+                            }
+                        ]
+                    }
+                }
+            };
+
+            // Se você usou 'text' em parts, o payload para params.message.parts seria:
+            // parts: [ { type: "text", text: userInput } ]
+            // E você não poderia passar a2a_task_id_override facilmente por aqui.
+            // Manter "data" é mais flexível se você planeja enviar mais metadados com a mensagem do usuário.
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                showTypingIndicator(false);
+
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    console.error('Erro na API:', response.status, errorData);
+                    addMessageToChat(`Erro ao contatar Aura: ${response.status}. Detalhes no console.`, 'aura');
+                    return;
+                }
+
+                const responseData = await response.json();
+                console.log("Resposta da API A2A:", responseData);
+
+                if (responseData.error) {
+                    console.error('Erro RPC:', responseData.error);
+                    addMessageToChat(`Aura encontrou um erro: ${responseData.error.message}`, 'aura');
+                } else if (responseData.result && responseData.result.artifacts && responseData.result.artifacts.length > 0) {
+                    const auraTextResponse = responseData.result.artifacts[0].parts[0].text;
+                    addMessageToChat(auraTextResponse, 'aura');
+                } else {
+                    addMessageToChat("Aura não forneceu uma resposta reconhecível.", 'aura');
+                }
+
+            } catch (error) {
+                showTypingIndicator(false);
+                console.error('Falha ao enviar mensagem:', error);
+                addMessageToChat(`Falha na comunicação com Aura. Verifique o console. (${error.message})`, 'aura');
+            }
+        }
+
+        sendButton.addEventListener('click', () => {
+            sendMessageToAura(messageInput.value);
+        });
+
+        messageInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendMessageToAura(messageInput.value);
+            }
+        });
+
+        // Adiciona uma mensagem inicial de Aura
+        // addMessageToChat("Olá! Eu sou Aura. Como posso te ajudar hoje?", 'aura');
+
+    </script>
+</body>
+</html>
