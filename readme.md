@@ -8,7 +8,8 @@ Aura2 is a sophisticated conversational AI project integrating a core agent (Aur
 *   **MemoryBlossom:** A custom long-term memory system designed for rich, interconnected memory storage and retrieval.
 *   **Narrative Context Framing (NCF):** A prompting strategy that provides Aura with a deep contextual understanding of the conversation, including foundational narratives, RAG-enhanced information, and recent history.
 *   **AppAgentX Integration:** Enables Aura to perceive and interact with Android GUIs, allowing it to perform tasks on a connected Android device or emulator (e.g., opening apps, learning new procedures).
-*   **A2A Protocol Wrapper:** Exposes Aura via the Agent-to-Agent (A2A) communication protocol.
+*   **A2A Protocol Wrapper:** Exposes Aura via the Agent-to-Agent (A2A) communication protocol. 
+*   ** Aira hub Ready ** 
 *   **Realtime Voice Interface (Prototype):** Includes a web-based client for real-time voice interaction, using OpenAI's Realtime API for STT/TTS and WebRTC.
 
 ## Project Structure
