@@ -17,7 +17,7 @@ Aura 2 is based on Aura and share it's core principles, read about Aura in :  ht
 ## Hardware Usage 
 
 - Aura uses 5 LLM calls for each AppAgentX Command 
-- Aura was tested on a i7 7700, 16GB RAM, NVIDIA 1060 6GB, Windows 10 . It consumes at least 8gb of Ram and around 50gb of Space(In Windows due WSL...) 
+- Aura was tested on a i7 7700, 16GB RAM, NVIDIA 1060 6GB, Windows 10 . It consumes at least 8gb of Ram and around 50gb of Space(In Windows due Docker/WSL...) 
 
 ## Project Structure
 
