@@ -74,7 +74,7 @@ from google.adk.sessions import Session as ADKSession
 
 # --- Configuration & FastAPI App ---
 A2A_WRAPPER_HOST = os.getenv("A2A_WRAPPER_HOST", "0.0.0.0")
-A2A_WRAPPER_PORT = int(os.getenv("A2A_WRAPPER_PORT", "8094"))  # Client targets this port
+A2A_WRAPPER_PORT = int(os.getenv("A2A_WRAPPER_PORT", "8098"))  # Client targets this port
 A2A_WRAPPER_BASE_URL = os.getenv("A2A_WRAPPER_BASE_URL", f"http://localhost:{A2A_WRAPPER_PORT}")
 
 app = FastAPI(
@@ -95,7 +95,7 @@ app.add_middleware(
 
 # --- Agent Card ---
 AGENT_CARD_DATA = AgentCard(
-    name="Aura",
+    name="Aura2",
     description="A conversational AI agent, Aura, with advanced memory capabilities using "
                 "Narrative Context Framing (NCF). Aura aims to build a deep, "
                 "contextual understanding over long interactions.",
@@ -136,6 +136,11 @@ AGENT_CARD_DATA = AgentCard(
         )
     ]
 )
+
+
+@app.get("/.well-known/agent.json", response_model=AgentCard, response_model_exclude_none=True)
+async def get_agent_card():
+    return AGENT_CARD_DATA
 
 
 # --- Pydantic Models for Voice Client API ---
@@ -224,7 +229,6 @@ async def get_narrativa_de_fundamento_pilar1(
             # This creates an object for `req.config` with a `tools` attribute that is an empty list.
             minimal_config = SimpleNamespace(tools=[])
             llm_req = LlmRequest(contents=request_messages, config=minimal_config)
-
 
             final_text_response = ""
             async for llm_response_event in helper_llm.generate_content_async(
@@ -378,7 +382,6 @@ async def aura_reflector_analisar_interacao(
         minimal_config = SimpleNamespace(tools=[])
         llm_req = LlmRequest(contents=request_messages, config=minimal_config)
 
-
         final_text_response = ""
         async for llm_response_event in helper_llm.generate_content_async(llm_req):
             if llm_response_event and llm_response_event.content and \
@@ -398,15 +401,21 @@ async def aura_reflector_analisar_interacao(
                 not (decision_json_str.startswith('[') and decision_json_str.endswith(']')):
             match_obj, match_list = None, None
             try:
-                obj_start = decision_json_str.index('{'); obj_end = decision_json_str.rindex('}') + 1
+                obj_start = decision_json_str.index('{');
+                obj_end = decision_json_str.rindex('}') + 1
                 match_obj = decision_json_str[obj_start:obj_end]
-            except ValueError: pass
+            except ValueError:
+                pass
             try:
-                list_start = decision_json_str.index('['); list_end = decision_json_str.rindex(']') + 1
+                list_start = decision_json_str.index('[');
+                list_end = decision_json_str.rindex(']') + 1
                 match_list = decision_json_str[list_start:list_end]
-            except ValueError: pass
-            if match_obj and (not match_list or len(match_obj) > len(match_list)): decision_json_str = match_obj
-            elif match_list: decision_json_str = match_list
+            except ValueError:
+                pass
+            if match_obj and (not match_list or len(match_obj) > len(match_list)):
+                decision_json_str = match_obj
+            elif match_list:
+                decision_json_str = match_list
             else:
                 logger.warning(f"[Reflector] LLM response not valid JSON after cleaning: {decision_json_str}")
                 return
@@ -417,9 +426,10 @@ async def aura_reflector_analisar_interacao(
             if isinstance(parsed_decision, dict) and "content" in parsed_decision and "memory_type" in parsed_decision:
                 memories_to_add.append(parsed_decision)
             elif isinstance(parsed_decision, list):
-                memories_to_add = [item for item in parsed_decision if isinstance(item, dict) and "content" in item and "memory_type" in item]
-            elif parsed_decision: # Non-empty but not valid memory structure
-                 logger.info(f"[Reflector] Parsed decision is not a valid memory structure: {parsed_decision}")
+                memories_to_add = [item for item in parsed_decision if
+                                   isinstance(item, dict) and "content" in item and "memory_type" in item]
+            elif parsed_decision:  # Non-empty but not valid memory structure
+                logger.info(f"[Reflector] Parsed decision is not a valid memory structure: {parsed_decision}")
 
         except json.JSONDecodeError as e:
             logger.error(f"[Reflector] JSONDecodeError for Reflector decision: {e}. String: {decision_json_str}")
@@ -482,7 +492,8 @@ async def run_adk_conversation_for_voice_client(user_id: str, session_id: str, u
     adk_session_service.update_session(current_adk_session)  # SYNC
 
     # Optionally run reflector for voice client interactions too
-    await aura_reflector_analisar_interacao(user_utterance_raw, final_ncf_prompt_str, adk_agent_final_text_response, memory_blossom_instance, user_id)
+    await aura_reflector_analisar_interacao(user_utterance_raw, final_ncf_prompt_str, adk_agent_final_text_response,
+                                            memory_blossom_instance, user_id)
     return adk_agent_final_text_response
 
 
@@ -567,11 +578,6 @@ async def handle_chat_with_aura_via_voice_client_endpoint(request: ChatRequest):
     except Exception as e:
         logger.error(f"Error in /aura/chat handling: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error in /aura/chat: {str(e)}")
-
-
-@app.get("/.well-known/agent.json", response_model=AgentCard, response_model_exclude_none=True)
-async def get_agent_card_endpoint_main():
-    return AGENT_CARD_DATA
 
 
 @app.post("/", response_model=A2AJsonRpcResponse, response_model_exclude_none=True)
