@@ -183,7 +183,6 @@ def execute_android_task_tool_func(
         task_description: str, target_application: Optional[str] = None, device_id: str = "DYONHQPZ9PF6V4TO",
         tool_context: Optional[ToolContext] = None
 ) -> Dict[str, Any]:
-    # (Implementation from Phase 1 - unchanged)
     print(f"--- TOOL: execute_android_task_tool_func called ---")
     print(f"  Task: {task_description}")
     if target_application: print(f"  Target App: {target_application}")
@@ -197,7 +196,9 @@ def execute_android_task_tool_func(
         full_task_for_appagentx = f"In the app '{target_application}', {task_description}"
     try:
         print(f"  Calling AppAgentX with task: '{full_task_for_appagentx}' on device '{device_id}'")
-        result = appagentx_run_task_deployment(task=full_task_for_appagentx, device=device_id)  # Use renamed import
+        result = appagentx_run_task_deployment(task=full_task_for_appagentx, device=device_id)
+        logger_orch.info(f"TOOL execute_android_task: Received task_description='{task_description}'")
+        logger_orch.info(f"TOOL execute_android_task: Received target_application='{target_application}'")
         print(f"  AppAgentX Result: {result}")
         if result.get("status") == "success" or result.get("execution_status") == "success":
             return {
