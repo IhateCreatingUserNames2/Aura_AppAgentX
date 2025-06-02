@@ -1,4 +1,18 @@
 import os
+from dotenv import load_dotenv
+
+CONFIG_FILE_PATH = os.path.abspath(__file__) # Full path to this config.py
+APPAGENTX_DIR = os.path.dirname(CONFIG_FILE_PATH) # AppAgentX/ directory
+PROJECT_ROOT = os.path.dirname(APPAGENTX_DIR) # Aura2/ directory
+DOTENV_PATH = os.path.join(PROJECT_ROOT, '.env')
+if os.path.exists(DOTENV_PATH):
+    print(f"AppAgentX/config.py: Loading .env from {DOTENV_PATH}")
+    # override=True ensures that if .env is loaded multiple times,
+    # the values from this load (if the variables are in .env) will take precedence
+    # or be updated if already set by an earlier load_dotenv call in the same process.
+    load_dotenv(DOTENV_PATH, override=True)
+else:
+    print(f"AppAgentX/config.py: .env file not found at {DOTENV_PATH}. Relying on pre-set environment variables or defaults.")
 
 # LLM Configuration
 # These settings control the connection and behavior of the Large Language Model API
@@ -8,7 +22,7 @@ LLM_BASE_URL = os.getenv("APPAGENTX_LLM_BASE_URL", "")
 # Base URL for the LLM API service, using a proxy to access OpenAI's API
 # Please enter your LLM service base URL here
 
-LLM_API_KEY = os.getenv("APPAGENTX_LLM_API_KEY", "")
+LLM_API_KEY = os.getenv("APPAGENTX_LLM_API_KEY", "sk-proj-")
 # API key for authentication with the LLM service
 # Please enter your LLM API key here
 
@@ -46,12 +60,9 @@ LANGCHAIN_PROJECT = os.getenv("APPAGENTX_LANGCHAIN_PROJECT", "AppAgentX_Project"
 # Settings for connecting to the Neo4j graph database
 # Please update these settings according to your Neo4j installation
 
-Neo4j_URI = os.getenv("APPAGENTX_NEO4J_URI", "neo4j://127.0.0.1:7687")
-# URI for connecting to the Neo4j database server
-# Default is localhost, change if your database is hosted elsewhere
-
+Neo4j_URI = os.getenv("APPAGENTX_NEO4J_URI", "neo4j://127.0.0.1:7687") # Fallback to localhost if not in .env or env
 _neo4j_user = os.getenv("APPAGENTX_NEO4J_AUTH_USER", "neo4j")
-_neo4j_pass = os.getenv("APPAGENTX_NEO4J_AUTH_PASS", "12345678")
+_neo4j_pass = os.getenv("APPAGENTX_NEO4J_AUTH_PASS", "12345678") # Be careful with default passwords
 Neo4j_AUTH = (_neo4j_user, _neo4j_pass)
 # Authentication credentials (username, password) for Neo4j
 # Please update with your actual Neo4j credentials
@@ -77,6 +88,6 @@ Omni_URI = os.getenv("APPAGENTX_OMNI_URI", "http://127.0.0.1:8000")
 # Settings for the vector database used for embeddings storage
 # Please fill in your vector database information
 
-PINECONE_API_KEY = ""
+PINECONE_API_KEY = "pcsk_"
 # API key for authentication with Pinecone vector database service
 # Please enter your Pinecone API key here
