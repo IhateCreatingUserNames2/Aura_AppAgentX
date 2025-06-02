@@ -1,10 +1,22 @@
 import os
 from dotenv import load_dotenv
+import logging
+
+logger_appagentx_config = logging.getLogger(__name__)
 
 CONFIG_FILE_PATH = os.path.abspath(__file__) # Full path to this config.py
 APPAGENTX_DIR = os.path.dirname(CONFIG_FILE_PATH) # AppAgentX/ directory
 PROJECT_ROOT = os.path.dirname(APPAGENTX_DIR) # Aura2/ directory
 DOTENV_PATH = os.path.join(PROJECT_ROOT, '.env')
+
+logger_appagentx_config.info("AppAgentX/config.py: Attempting to load .env...") # Log attempt
+if os.path.exists(DOTENV_PATH):
+    load_dotenv(DOTENV_PATH, override=True)
+    logger_appagentx_config.info(f"AppAgentX/config.py: Successfully loaded .env from {DOTENV_PATH}")
+else:
+    logger_appagentx_config.warning(f"AppAgentX/config.py: .env file not found at {DOTENV_PATH}. Using defaults or existing env vars.")
+
+
 if os.path.exists(DOTENV_PATH):
     print(f"AppAgentX/config.py: Loading .env from {DOTENV_PATH}")
     # override=True ensures that if .env is loaded multiple times,
@@ -59,14 +71,14 @@ LANGCHAIN_PROJECT = os.getenv("APPAGENTX_LANGCHAIN_PROJECT", "AppAgentX_Project"
 # Neo4j Configuration
 # Settings for connecting to the Neo4j graph database
 # Please update these settings according to your Neo4j installation
-
+logger_appagentx_config.info("AppAgentX/config.py: Defining configuration variables...")
 Neo4j_URI = os.getenv("APPAGENTX_NEO4J_URI", "neo4j://127.0.0.1:7687") # Fallback to localhost if not in .env or env
 _neo4j_user = os.getenv("APPAGENTX_NEO4J_AUTH_USER", "neo4j")
 _neo4j_pass = os.getenv("APPAGENTX_NEO4J_AUTH_PASS", "12345678") # Be careful with default passwords
 Neo4j_AUTH = (_neo4j_user, _neo4j_pass)
 # Authentication credentials (username, password) for Neo4j
 # Please update with your actual Neo4j credentials
-
+logger_appagentx_config.info("AppAgentX/config.py: Configuration variables defined.")
 # Feature Extractor Configuration
 # Settings for the feature extraction service
 # Please ensure this service is running at the specified address
