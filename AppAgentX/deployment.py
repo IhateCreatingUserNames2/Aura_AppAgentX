@@ -11,20 +11,20 @@ from pydantic import SecretStr
 
 import sys
 import os
+
 # Add these debug lines at the VERY TOP of deployment.py
 print(f"--- DEBUG: AppAgentX/deployment.py ---")
 print(f"deployment.py: __name__ = {__name__}")
 print(f"deployment.py: __package__ = {__package__}")
 print(f"deployment.py: os.getcwd() = {os.getcwd()}")
 
-
-from .data.State import DeploymentState, ElementMatch, create_deployment_state # Add create_deployment_state if it's from original and needed
+from .data.State import DeploymentState, ElementMatch, \
+    create_deployment_state  # Add create_deployment_state if it's from original and needed
 from .data.graph_db import Neo4jDatabase
-from .data.vector_db import VectorStore # Ensure AppAgentX/data/vector_db.py and VectorStore exist
+from .data.vector_db import VectorStore  # Ensure AppAgentX/data/vector_db.py and VectorStore exist
 from .tool.img_tool import *
 from .tool.screen_content import *
-from . import config # This will import AppAgentX/config.py
-
+from . import config  # This will import AppAgentX/config.py
 
 os.environ["LANGCHAIN_TRACING_V2"] = config.LANGCHAIN_TRACING_V2
 os.environ["LANGCHAIN_ENDPOINT"] = config.LANGCHAIN_ENDPOINT
@@ -68,7 +68,7 @@ def create_execution_state(device: str) -> Dict[str, Any]:
 
 
 def match_task_to_action(
-    state: Dict[str, Any], task: str
+        state: Dict[str, Any], task: str
 ) -> Tuple[bool, Optional[Dict[str, Any]]]:
     """
     Match user task with high-level action nodes
@@ -136,7 +136,7 @@ If no match is found, return "NO_MATCH" with a brief explanation.
         # Parse results
         if result.startswith("MATCHED:"):
             # Extract matched action information
-            action_json_str = result[len("MATCHED:") :].strip()
+            action_json_str = result[len("MATCHED:"):].strip()
             try:
                 matched_action = json.loads(action_json_str)
                 print(
@@ -147,7 +147,7 @@ If no match is found, return "NO_MATCH" with a brief explanation.
                 print(f"❌ Cannot parse matching result: {action_json_str}")
                 return False, None
         elif result.startswith("NO_MATCH"):
-            reason = result[len("NO_MATCH") :].strip()
+            reason = result[len("NO_MATCH"):].strip()
             print(f"❌ No matching high-level action found")
             print(f"  Reason: {reason}")
             return False, None
@@ -199,7 +199,7 @@ def capture_and_parse_screen(state: DeploymentState) -> DeploymentState:
 
         # 4. Load element data
         with open(
-            screen_result["parsed_content_json_path"], "r", encoding="utf-8"
+                screen_result["parsed_content_json_path"], "r", encoding="utf-8"
         ) as f:
             state["current_page"]["elements_data"] = json.load(f)
 
@@ -214,7 +214,7 @@ def capture_and_parse_screen(state: DeploymentState) -> DeploymentState:
 
 
 def match_screen_elements(
-    state: DeploymentState, action_sequence: List[Dict[str, Any]]
+        state: DeploymentState, action_sequence: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
     """
     Match current screen elements with elements in high-level action nodes using visual embedding comparison
@@ -257,7 +257,7 @@ def match_screen_elements(
     # If retrieved node is an Action node, ensure it contains necessary visual information
     # Otherwise fall back to semantic matching
     if "action_id" in db_element and not any(
-        key in db_element for key in ["visual_embedding", "screenshot_path"]
+            key in db_element for key in ["visual_embedding", "screenshot_path"]
     ):
         print(
             f"⚠️ Retrieved node is an Action node but lacks visual information, falling back to semantic matching"
@@ -333,7 +333,7 @@ def match_screen_elements(
                 similarity = 0
             else:
                 similarity = np.dot(template_vec, element_vec) / (
-                    template_norm * element_norm
+                        template_norm * element_norm
                 )
 
             # Convert similarity to match score
@@ -372,7 +372,7 @@ def match_screen_elements(
 
 
 def fallback_to_semantic_match(
-    state: DeploymentState, action_sequence: List[Dict[str, Any]]
+        state: DeploymentState, action_sequence: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
     """
     Fallback to semantic matching when visual matching fails
@@ -476,8 +476,8 @@ If no element with matching score above 0.6 is found, set match_score to 0 and s
     )
 
     if (
-        "action_params" in current_template["step_info"]
-        and current_template["step_info"]["action_params"]
+            "action_params" in current_template["step_info"]
+            and current_template["step_info"]["action_params"]
     ):
         params = current_template["step_info"]["action_params"]
         if isinstance(params, str):
@@ -539,7 +539,7 @@ If no element with matching score above 0.6 is found, set match_score to 0 and s
 
 
 def execute_element_action(
-    state: DeploymentState, element_match: Dict[str, Any]
+        state: DeploymentState, element_match: Dict[str, Any]
 ) -> bool:
     """
     Execute screen element action
@@ -561,7 +561,7 @@ def execute_element_action(
         screen_element_id = element_match.get("screen_element_id", -1)
 
         if screen_element_id < 0 or screen_element_id >= len(
-            state["current_page"]["elements_data"]
+                state["current_page"]["elements_data"]
         ):
             print(f"❌ Invalid screen element ID: {screen_element_id}")
             return False
@@ -692,7 +692,7 @@ and complete it by calling tools. All tool calls must pass in device to specify 
         ),
         HumanMessage(
             content="Below is the current page's parsed JSON data (where bbox is a relative value, please convert to actual operation position based on screen size):\n"
-            + elements_text
+                    + elements_text
         ),
         HumanMessage(
             content=[
@@ -758,7 +758,7 @@ and complete it by calling tools. All tool calls must pass in device to specify 
 
 
 def execute_task(
-    state: DeploymentState, task: str, device: str, neo4j_db: Neo4jDatabase = None
+        state: DeploymentState, task: str, device: str, neo4j_db: Neo4jDatabase = None
 ) -> Dict[str, Any]:
     """
     Main function to execute a task
@@ -972,8 +972,8 @@ def run_task(task: str, device: str = "emulator-5554") -> Dict[str, Any]:
 
         # Display final screenshot if execution was successful
         if (
-            result["execution_status"] == "success"
-            and result["current_page"]["screenshot"]
+                result["execution_status"] == "success"
+                and result["current_page"]["screenshot"]
         ):
             try:
                 from PIL import Image
@@ -1000,7 +1000,7 @@ def run_task(task: str, device: str = "emulator-5554") -> Dict[str, Any]:
 
 
 def check_shortcut_associations(
-    state: DeploymentState, high_level_actions: List[Dict[str, Any]]
+        state: DeploymentState, high_level_actions: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
     """
     Check if high-level actions are associated with shortcuts
@@ -1047,7 +1047,7 @@ def check_shortcut_associations(
 
 
 def evaluate_shortcut_execution(
-    state: DeploymentState, shortcuts: List[Dict[str, Any]]
+        state: DeploymentState, shortcuts: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
     """
     Evaluate if shortcuts meet execution conditions
@@ -1072,7 +1072,7 @@ def evaluate_shortcut_execution(
         for i, element in enumerate(state["current_page"]["elements_data"]):
             element_type = element.get("type", "Unknown type")
             element_content = element.get("content", "")
-            screen_desc += f"{i+1}. Type: {element_type}, Content: {element_content}\n"
+            screen_desc += f"{i + 1}. Type: {element_type}, Content: {element_content}\n"
 
     # Prepare task information
     task_desc = state["task"]
@@ -1117,7 +1117,7 @@ If no shortcuts meet conditions, return an empty list.
     # Prepare shortcuts information
     shortcuts_info = ""
     for i, shortcut in enumerate(shortcuts):
-        shortcuts_info += f"{i+1}. ID: {shortcut.get('shortcut_id')}\n"
+        shortcuts_info += f"{i + 1}. ID: {shortcut.get('shortcut_id')}\n"
         shortcuts_info += f"   Name: {shortcut.get('name')}\n"
         shortcuts_info += (
             f"   Description: {shortcut.get('description', 'No description')}\n"
@@ -1186,7 +1186,7 @@ If no shortcuts meet conditions, return an empty list.
 
 
 def generate_execution_template(
-    state: DeploymentState, shortcuts: List[Dict[str, Any]]
+        state: DeploymentState, shortcuts: List[Dict[str, Any]]
 ) -> Dict[str, Any]:
     """
     Generate execution template based on shortcuts
@@ -1273,7 +1273,7 @@ Ensure each step has a clear operation target and necessary parameters. If the o
         shortcut_info += "Action sequence:\n"
         if isinstance(action_sequence, list):
             for i, action in enumerate(action_sequence):
-                shortcut_info += f"  {i+1}. {json.dumps(action, ensure_ascii=False)}\n"
+                shortcut_info += f"  {i + 1}. {json.dumps(action, ensure_ascii=False)}\n"
         elif isinstance(action_sequence, str):
             shortcut_info += f"  {action_sequence}\n"
 
@@ -1303,9 +1303,9 @@ Ensure each step has a clear operation target and necessary parameters. If the o
 
         # Validate result
         if (
-            "steps" in result
-            and isinstance(result["steps"], list)
-            and len(result["steps"]) > 0
+                "steps" in result
+                and isinstance(result["steps"], list)
+                and len(result["steps"]) > 0
         ):
             print(
                 f"✓ Successfully generated execution template with {len(result['steps'])} steps"
@@ -1321,7 +1321,7 @@ Ensure each step has a clear operation target and necessary parameters. If the o
 
 
 def prioritize_shortcuts(
-    state: Dict[str, Any], shortcuts: List[Dict[str, Any]]
+        state: Dict[str, Any], shortcuts: List[Dict[str, Any]]
 ) -> List[Dict[str, Any]]:
     """
     Prioritize shortcuts based on page flow
@@ -1387,9 +1387,9 @@ def prioritize_shortcuts(
 
 
 def execute_high_level_action(
-    state: DeploymentState,
-    shortcuts: List[Dict[str, Any]],
-    execution_template: Dict[str, Any],
+        state: DeploymentState,
+        shortcuts: List[Dict[str, Any]],
+        execution_template: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
     Execute high-level operations
@@ -1660,7 +1660,7 @@ def match_elements_node(state: DeploymentState) -> DeploymentState:
         else:
             # If no element_id, try using other possible ID fields
             element_id = (
-                element.get("id") or element.get("node_id") or str(hash(str(element)))
+                    element.get("id") or element.get("node_id") or str(hash(str(element)))
             )
             print(
                 f"⚠️ Element missing element_id field, using alternative ID: {element_id}"

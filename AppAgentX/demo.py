@@ -1,10 +1,23 @@
 import datetime
 import json
 import os
+import sys
+import time
+import traceback
+from queue import Queue, Empty
+
+APPAGENTX_DIR = os.path.dirname(os.path.abspath(__file__))
+# Get the absolute path of the project root (Aura2)
+PROJECT_ROOT = os.path.dirname(APPAGENTX_DIR)
+
+# Add the project root to sys.path if it's not already there
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 import threading
 from queue import Queue
 import gradio as gr
-from . import config # This will import AppAgentX/config.py
+from . import config
 from .explor_auto import run_task
 from .chain_evolve import evolve_chain_to_action
 from .chain_understand import process_and_update_chain, Neo4jDatabase
@@ -1125,268 +1138,191 @@ with gr.Blocks(
                 queue=True,  # Enable queue processing
             )
 
-        # Tab 5: Action Execution
-        with gr.Tab("Action Execution"):
-            gr.Markdown("### Action Execution Management")
-            with gr.Row():
-                # Left side: Control panel
-                with gr.Column(scale=1):
-                    # Device selection and task input
-                    device_selector_exec = gr.Radio(
-                        label="Select Execution Device",
-                        choices=get_adb_devices(),
-                        interactive=True,
-                    )
-                    refresh_device_btn = gr.Button(
-                        "Refresh Device List", variant="secondary"
-                    )
-
-                    task_input = gr.Textbox(
-                        label="Enter Task Description",
-                        placeholder="e.g., Open settings and switch to airplane mode",
-                        lines=3,
-                    )
-
-                    # Execution control
-                    with gr.Row():
-                        execute_btn = gr.Button(
-                            "Execute Task", variant="primary", scale=2
+            # Tab 5: Action Execution
+            with gr.Tab("Action Execution"):
+                gr.Markdown("### Action Execution Management")
+                with gr.Row():
+                    with gr.Column(scale=1):
+                        device_selector_exec = gr.Radio(
+                            label="Select Execution Device",
+                            choices=get_adb_devices(),  # Assumes get_adb_devices is defined
+                            interactive=True,
                         )
-                        stop_btn = gr.Button(
-                            "Stop Execution", variant="stop", scale=1, interactive=False
+                        refresh_device_btn = gr.Button(
+                            "Refresh Device List", variant="secondary"
+                        )
+                        task_input = gr.Textbox(
+                            label="Enter Task Description",
+                            placeholder="e.g., Open settings and switch to airplane mode",
+                            lines=3,
+                        )
+                        with gr.Row():
+                            execute_btn = gr.Button(
+                                "Execute Task", variant="primary", scale=2
+                            )
+                            stop_btn = gr.Button(
+                                "Stop Execution", variant="stop", scale=1, interactive=False
+                            )
+                        execution_status = gr.Textbox(
+                            label="Execution Status", interactive=False
+                        )
+                    with gr.Column(scale=2):
+                        execution_log = gr.TextArea(
+                            label="Execution Log", interactive=False, lines=15
+                        )
+                        screenshot_gallery_exec = gr.Gallery(
+                            label="Execution Process Screenshots", columns=2, height=400
                         )
 
-                    # Execution result status
-                    execution_status = gr.Textbox(
-                        label="Execution Status", interactive=False
-                    )
-
-                # Right side: Logs and screenshots
-                with gr.Column(scale=2):
-                    # Log output
-                    execution_log = gr.TextArea(
-                        label="Execution Log", interactive=False, lines=15
-                    )
-
-                    # Screenshot display
-                    screenshot_gallery_exec = gr.Gallery(
-                        label="Execution Process Screenshots", columns=2, height=400
-                    )
-
-            # Import deployment module
-            from .deployment import run_task
-
-            # Refresh device list
-            def update_execution_devices():
-                devices = get_adb_devices()
-                return gr.update(choices=devices)
-
-            refresh_device_btn.click(
-                fn=update_execution_devices, outputs=[device_selector_exec]
-            )
-
-            # Execute task function
-            def execute_deployment_task(
-                device, task_description, progress=gr.Progress()
-            ):
-                if not device or device == "No devices found":
-                    return (
-                        "Error: Please select a valid device",
-                        "Execution failed: No valid device selected",
-                        [],
-                    )
-
-                if not task_description or task_description.strip() == "":
-                    return (
-                        "Error: Please enter task description",
-                        "Execution failed: Task description is empty",
-                        [],
-                    )
-
-                # Create variable to store logs
-                logs = []
-                screenshots = []
-
-                # Update function for updating UI during execution
-                def add_log(message):
-                    logs.append(message)
-                    return "\n".join(logs)
-
+                # Import the deployment run_task function correctly once for this tab's scope
                 try:
-                    add_log(f"Starting task execution: '{task_description}'")
-                    add_log(f"Using device: {device}")
+                    from .deployment import run_task as deployment_run_task_entry_point
+
+                    print("DEMO.PY (Action Execution Tab): Successfully imported .deployment.run_task")
+                except ImportError as e_import:
+                    print(f"DEMO.PY (Action Execution Tab): FAILED to import .deployment.run_task. Error: {e_import}")
+
+
+                    # Define a placeholder so Gradio doesn't crash on load if import fails
+                    def deployment_run_task_entry_point(*args, **kwargs):
+                        raise ImportError("Critical: .deployment.run_task could not be imported for Action Execution.")
+
+
+                def update_execution_devices():
+                    devices = get_adb_devices()
+                    return gr.update(choices=devices)
+
+
+                refresh_device_btn.click(
+                    fn=update_execution_devices, outputs=[device_selector_exec]
+                )
+
+
+                def execute_deployment_task(
+                        selected_device_id_str: str, task_description_str: str, progress=gr.Progress()
+                ):
+                    if not selected_device_id_str or selected_device_id_str == "No devices found":
+                        return "Error: Please select a valid device", "Execution failed: No valid device selected", []
+                    if not task_description_str or task_description_str.strip() == "":
+                        return "Error: Please enter task description", "Execution failed: Task description is empty", []
+
+                    logs = []
+                    screenshots_for_ui = []  # For displaying in Gradio gallery for this tab
+                    action_execution_queue = Queue()
+
+                    def add_log_entry(message: str):
+                        logs.append(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {message}")
+
+                    def task_execution_thread_target():
+                        try:
+                            add_log_entry(
+                                f"Thread: Starting deployment task process for: '{task_description_str}' on device '{selected_device_id_str}'")
+
+                            # Call the imported deployment function
+                            result_dictionary = deployment_run_task_entry_point(
+                                task=task_description_str,
+                                device=selected_device_id_str
+                            )
+                            action_execution_queue.put(result_dictionary)
+                            add_log_entry("Thread: Deployment task function call completed.")
+
+                        except ImportError as ie_thread:  # Should be caught by top-level import ideally
+                            add_log_entry(f"Thread Import Error: {str(ie_thread)}")
+                            action_execution_queue.put(
+                                {"status": "error", "message": f"ImportError in thread: {str(ie_thread)}",
+                                 "completed": False})
+                        except Exception as e_thread:
+                            tb_str = traceback.format_exc()
+                            add_log_entry(f"Thread Execution Error: {str(e_thread)}\n{tb_str}")
+                            action_execution_queue.put(
+                                {"status": "error", "message": str(e_thread), "completed": False})
+
+                    add_log_entry(
+                        f"UI: Kicking off task: '{task_description_str}' on device '{selected_device_id_str}'.")
                     progress(0.1, "Initializing execution environment...")
 
-                    # Create execution function callback
-                    def execution_callback(state, node_name=None, info=None):
-                        if node_name:
-                            add_log(f"Executing node: {node_name}")
+                    execution_thread = threading.Thread(target=task_execution_thread_target)
+                    execution_thread.start()
 
-                        if info and isinstance(info, dict):
-                            for k, v in info.items():
-                                if k == "message":
-                                    add_log(f"Information: {v}")
-                                elif (
-                                    k == "labeled_image_path"
-                                    and v
-                                    and v not in screenshots
-                                ):
-                                    screenshots.append(v)
+                    current_ui_status = "Executing..."
+                    loop_start_time = time.time()
 
-                        # Extract screenshots from tool results if available
-                        if "tool_results" in state:
-                            for tool_result in state["tool_results"]:
-                                if (
-                                    isinstance(tool_result, dict)
-                                    and "result" in tool_result
-                                ):
-                                    result = tool_result["result"]
-                                    if (
-                                        isinstance(result, dict)
-                                        and "labeled_image_path" in result
-                                    ):
-                                        img_path = result["labeled_image_path"]
-                                        if img_path and img_path not in screenshots:
-                                            screenshots.append(img_path)
-                                            add_log(f"Captured screenshot: {img_path}")
-
-                        # Real-time UI update
-                        yield "\n".join(logs), "Executing...", screenshots
-
-                    # Set callback function
-                    import types
-                    import threading
-                    from queue import Queue
-
-                    # Create queue for thread communication
-                    update_queue = Queue()
-
-                    # Execute task in background thread
-                    def run_in_background():
+                    while execution_thread.is_alive() or not action_execution_queue.empty():
                         try:
-                            # Modify run_task function to support callback
-                            original_run_task = run_task
+                            # Try to get a result if the thread might have put something
+                            # This is primarily for the final result. Intermediate results would require
+                            # deployment_run_task_entry_point to put multiple items on the queue.
+                            if not execution_thread.is_alive() and not action_execution_queue.empty():
+                                final_result_payload = action_execution_queue.get_nowait()
+                                action_execution_queue.put(final_result_payload)  # Put back for final processing
+                                break  # Exit UI update loop, proceed to final result processing
 
-                            def patched_run_task(task, device):
-                                # Here, we can modify run_task function behavior, adding callback support
-                                add_log("Initializing task execution...")
-                                result = original_run_task(task, device)
+                            # Update UI periodically
+                            yield "\n".join(logs), current_ui_status, screenshots_for_ui
+                            time.sleep(0.5)  # UI refresh rate
+                            progress(((time.time() - loop_start_time) / 30) % 0.8 + 0.1,
+                                     current_ui_status)  # Example progress update
 
-                                # Task completed result put into queue
-                                update_queue.put(
-                                    {
-                                        "status": result.get("status", "unknown"),
-                                        "message": result.get("message", ""),
-                                        "completed": result.get("completed", False),
-                                    }
-                                )
-                                return result
+                        except Empty:
+                            if not execution_thread.is_alive():  # Thread finished and queue became empty
+                                break
+                            # Queue is empty, but thread is still running, continue waiting
+                        except Exception as e_loop_update:
+                            add_log_entry(f"UI Update Loop Error: {str(e_loop_update)}")
+                            current_ui_status = "Error in UI update loop"
+                            yield "\n".join(logs), current_ui_status, screenshots_for_ui
+                            break  # Exit loop on UI error
 
-                            # Temporarily replace function
-                            import deployment
-
-                            deployment.run_task = patched_run_task
-
-                            # Execute task
-                            add_log("Starting task execution process...")
-                            result = run_task(task_description, device)
-
-                            # Restore original function
-                            deployment.run_task = original_run_task
-
-                        except Exception as e:
-                            import traceback
-
-                            error_message = f"Error during execution: {str(e)}\n{traceback.format_exc()}"
-                            add_log(error_message)
-                            update_queue.put(
-                                {
-                                    "status": "error",
-                                    "message": str(e),
-                                    "completed": False,
-                                }
-                            )
-
-                    # Start background thread
-                    thread = threading.Thread(target=run_in_background)
-                    thread.start()
-
-                    # Continuously update UI until task completes
-                    import time
-
-                    while thread.is_alive():
-                        time.sleep(0.5)
-                        progress((0.1 + len(logs) * 0.01) % 0.9, "Executing task...")
-                        yield "\n".join(logs), "Executing...", screenshots
-
-                    # Get final result
+                    # Process final result from the queue
+                    final_payload_from_thread = None
                     try:
-                        result = update_queue.get(timeout=5)
-                        status = result.get("status", "unknown")
-                        message = result.get("message", "")
-                        completed = result.get("completed", False)
+                        final_payload_from_thread = action_execution_queue.get(
+                            timeout=10.0)  # Wait up to 10s for final result
+                    except Empty:
+                        add_log_entry(
+                            "❓ UI: Execution thread ended, but no final result obtained from queue (timeout).")
+                        current_ui_status = "Execution ended (timeout waiting for result)."
+                    except Exception as e_q_final:
+                        add_log_entry(f"❓ UI: Error getting final result from queue: {str(e_q_final)}")
+                        current_ui_status = "Error getting final result."
+
+                    if final_payload_from_thread:
+                        status = final_payload_from_thread.get("status", "unknown")
+                        message = final_payload_from_thread.get("message", "No specific message.")
+                        completed_status_flag = final_payload_from_thread.get("completed", False)
 
                         if status == "success":
-                            if completed:
-                                final_status = "✅ Execution successful: Task completed"
-                                add_log("✅ Task execution completed!")
-                            else:
-                                final_status = (
-                                    "⚠️ Execution successful but task not completed"
-                                )
-                                add_log(
-                                    "⚠️ Execution process successful but task not completed"
-                                )
+                            current_ui_status = "✅ Execution successful: Task completed by deployment." if completed_status_flag else "⚠️ Deployment process successful but task not marked as fully completed."
                         else:
-                            final_status = f"❌ Execution failed: {message}"
-                            add_log(f"❌ Task execution failed: {message}")
-                    except:
-                        final_status = "❓ Unable to retrieve execution result"
-                        add_log("❓ Unable to retrieve final execution result")
+                            current_ui_status = f"❌ Execution failed by deployment: {message}"
+                        add_log_entry(current_ui_status)  # Log the final status derived from payload
 
-                    progress(1.0, "Execution completed")
-                    add_log("Task execution process completed")
+                    progress(1.0, "Execution processing finished.")
+                    add_log_entry("UI: Execution control process completed.")
+                    return "\n".join(logs), current_ui_status, screenshots_for_ui
 
-                    return "\n".join(logs), final_status, screenshots
 
-                except Exception as e:
-                    import traceback
+                execute_btn.click(
+                    fn=execute_deployment_task,
+                    inputs=[device_selector_exec, task_input],
+                    outputs=[execution_log, execution_status, screenshot_gallery_exec],
+                    queue=True,
+                )
 
-                    error_message = (
-                        f"Error during execution: {str(e)}\n{traceback.format_exc()}"
-                    )
-                    add_log(error_message)
-                    return "\n".join(logs), f"Execution error: {str(e)}", screenshots
 
-            # Handle task execution button click
-            execute_btn.click(
-                fn=execute_deployment_task,
-                inputs=[device_selector_exec, task_input],
-                outputs=[execution_log, execution_status, screenshot_gallery_exec],
-                queue=True,
-            )
+                def toggle_execution_buttons(is_executing=True):
+                    return gr.update(interactive=not is_executing), gr.update(interactive=is_executing)
 
-            # Stop execution feature can be implemented in future version
-            # Currently only set basic UI structure
-            def toggle_execution_buttons(executing=True):
-                if executing:
-                    return gr.update(interactive=False), gr.update(interactive=True)
-                else:
-                    return gr.update(interactive=True), gr.update(interactive=False)
 
-            execute_btn.click(
-                fn=lambda: toggle_execution_buttons(True),
-                outputs=[execute_btn, stop_btn],
-            )
-
-            stop_btn.click(
-                fn=lambda: toggle_execution_buttons(False),
-                outputs=[execute_btn, stop_btn],
-            )
-
-            # Initialize with automatic refresh of device list
-            demo.load(fn=update_execution_devices, outputs=[device_selector_exec])
-
+                execute_btn.click(
+                    fn=lambda: toggle_execution_buttons(True),
+                    outputs=[execute_btn, stop_btn],
+                )
+                stop_btn.click(  # Note: Stop functionality is not fully implemented here, just UI toggle
+                    fn=lambda: toggle_execution_buttons(False),
+                    outputs=[execute_btn, stop_btn],
+                )
+                demo.load(fn=update_execution_devices, outputs=[device_selector_exec])
 
 if __name__ == "__main__":
     demo.launch()
