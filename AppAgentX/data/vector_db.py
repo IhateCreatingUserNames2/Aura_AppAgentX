@@ -4,7 +4,9 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Dict, Any, Optional
 from pinecone import Pinecone, ServerlessSpec
+import logging
 
+logger_vector_db = logging.getLogger("AppAgentX.data.vector_db")
 
 class NodeType(Enum):
     PAGE = "page"
@@ -35,24 +37,49 @@ class VectorStore:
             dimension: Vector dimension
             batch_size: Batch size
         """
+
+        logger_vector_db.info(f"VectorStore __init__: START for index '{index_name}'")
         self.pc = Pinecone(api_key=api_key)
+        logger_vector_db.info(f"VectorStore __init__: Pinecone client object created for '{index_name}'.")
         self.index_name = index_name
-        self.dimension = dimension
-        self.batch_size = batch_size
-        self._ensure_index()
+        self.dimension = dimension  # Make sure this matches your index!
+        self._ensure_index()  # This is the potentially blocking call
         self.index = self.pc.Index(self.index_name)
+        logger_vector_db.info(f"VectorStore __init__: FINISHED for index '{index_name}'.")
 
     def _ensure_index(self):
         """Ensure the index exists, create if not"""
+        logger_vector_db.info(f"VectorStore _ensure_index: START for '{self.index_name}'. Checking existence...")
         if not self.pc.has_index(self.index_name):
+            logger_vector_db.info(f"VectorStore _ensure_index: Index '{self.index_name}' not found. Creating...")
             self.pc.create_index(
-                name=self.index_name,
-                dimension=self.dimension,
-                metric="cosine",
-                spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+                name=self.index_name, dimension=self.dimension, metric="cosine",
+                spec=ServerlessSpec(cloud="aws", region="us-east-1")  # Match your spec
             )
-            while not self.pc.describe_index(self.index_name).status["ready"]:
-                time.sleep(1)
+            logger_vector_db.info(f"VectorStore _ensure_index: Index '{self.index_name}' creation initiated.")
+
+        logger_vector_db.info(f"VectorStore _ensure_index: Waiting for index '{self.index_name}' to be ready...")
+        wait_counter = 0
+        while True:
+            try:
+                status = self.pc.describe_index(self.index_name).status
+                if status["ready"]:
+                    logger_vector_db.info(f"VectorStore _ensure_index: Index '{self.index_name}' IS READY.")
+                    break
+                else:
+                    logger_vector_db.info(
+                        f"VectorStore _ensure_index: Index '{self.index_name}' not ready, status: {status}. Waiting... ({wait_counter * 5}s)")
+            except Exception as e:
+                logger_vector_db.error(
+                    f"VectorStore _ensure_index: Error describing index '{self.index_name}': {e}. Retrying...")
+
+            time.sleep(5)
+            wait_counter += 1
+            if wait_counter > 24:  # Timeout after 2 minutes
+                logger_vector_db.critical(
+                    f"VectorStore _ensure_index: TIMEOUT waiting for index '{self.index_name}' after {wait_counter * 5}s.")
+                raise Exception(f"Timeout waiting for Pinecone index '{self.index_name}' to become ready.")
+        logger_vector_db.info(f"VectorStore _ensure_index: FINISHED for '{self.index_name}'.")
 
     def upsert_batch(self, vectors: List[VectorData]) -> bool:
         """Batch insert or update vectors
