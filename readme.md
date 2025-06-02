@@ -247,6 +247,18 @@ Aura2/
 
 ---
 
+### AppAgentX Citation
+
+@misc{jiang2025appagentxevolvingguiagents,
+      title={AppAgentX: Evolving GUI Agents as Proficient Smartphone Users},
+      author={Wenjia Jiang and Yangyang Zhuang and Chenxi Song and Xu Yang and Chi Zhang},
+      year={2025},
+      eprint={2503.02268},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2503.02268},
+}
+
 Good luck!
 
 ![image](https://github.com/user-attachments/assets/18304b2a-d611-4ed8-b76f-060990e2bbcc)
