@@ -53,7 +53,7 @@ logger_orch.info(f"Orchestrator Module: ADK App Name='{ADK_APP_NAME}', Agent Mod
 
 # --- Initialize MemoryBlossom (Exported) ---
 memory_blossom_persistence_file = os.getenv("MEMORY_BLOSSOM_PERSISTENCE_PATH",
-                                            "memory_blossom_orchestrator_default.json")  # Potentially different default if needed
+                                            "memory_blossom_data.json")
 memory_blossom_instance = MemoryBlossom(persistence_path=memory_blossom_persistence_file)  # Exported
 memory_connector_instance = MemoryConnector(memory_blossom_instance)
 memory_blossom_instance.set_memory_connector(memory_connector_instance)
@@ -69,15 +69,25 @@ APPAGENTX_NEO4J_AUTH = None            # Initialize to None
 logger_orch.info("Orchestrator Module: Attempting to import AppAgentX modules (try-except removed for debug)...")
 # --- DIRECT IMPORTS: If any of these fail, the script will crash here, showing a full traceback ---
 from AppAgentX.deployment import run_task as appagentx_run_task_deployment
+logger_orch.info("ORCH: Attempting to import AppAgentX.config...")
 import AppAgentX.config as appagentx_config_module # This will re-assign if successful
-from AppAgentX.explor_auto import run_task as appagentx_explore_task_auto
+logger_orch.info("ORCH: Imported AppAgentX.config.")
+
+logger_orch.info("ORCH: Attempting to import AppAgentX.deployment...")
+from AppAgentX.deployment import run_task as appagentx_run_task_deployment
+logger_orch.info("ORCH: Imported AppAgentX.deployment.")
 from AppAgentX.chain_evolve import evolve_chain_to_action
+
+logger_orch.info("ORCH: Attempting to import AppAgentX.explor_auto...")
+from AppAgentX.explor_auto import run_task as appagentx_explore_task_auto
+logger_orch.info("ORCH: Imported AppAgentX.explor_auto.")
+
 from AppAgentX.data.data_storage import state2json as appagentx_state2json, json2db as appagentx_json2db
 from AppAgentX.data.graph_db import Neo4jDatabase as AppAgentXNeo4jDatabase
 from AppAgentX.data.State import State as AppAgentXInternalState # Make sure this specific import path is what you need
 from AppAgentX.tool.screen_content import get_device_size as appagentx_get_device_size
 # --- END DIRECT IMPORTS ---
-
+logger_orch.info("Orchestrator Module: Successfully imported ALL required AppAgentX modules directly.")
 # If all imports above succeed, then AppAgentX is considered available:
 APPAGENTX_DEPLOYMENT_AVAILABLE = True
 APPAGENTX_LEARNING_AVAILABLE = True
